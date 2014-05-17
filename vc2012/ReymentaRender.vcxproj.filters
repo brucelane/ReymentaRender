@@ -1,0 +1,199 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Blocks">
+      <UniqueIdentifier>{716D1823-8026-43C2-86ED-07AD96A701D5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\MinimalUI">
+      <UniqueIdentifier>{47A53D01-314F-483A-9797-3E2D2DBB3704}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\MinimalUI\src">
+      <UniqueIdentifier>{E172DD8A-0EE1-4360-B118-B4B220B06780}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\MinimalUI\include">
+      <UniqueIdentifier>{BA8C646F-6709-4487-9514-86B2F24F3724}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\OSC">
+      <UniqueIdentifier>{AF37D400-91A4-4E0F-AAD3-57D77923FFDC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\OSC\src">
+      <UniqueIdentifier>{BB497370-B393-4D26-893A-B3DF0EE1F6F7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\OSC\src\ip">
+      <UniqueIdentifier>{68CBFE07-F840-43FB-AE52-8896C09A2BA0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\OSC\src\osc">
+      <UniqueIdentifier>{8CCAEAAE-66F5-4595-8B9B-4A5F092AB685}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\OSC\src\ip\win32">
+      <UniqueIdentifier>{A1F436B5-B8A5-45FF-8E0D-F9F9700B2B54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\Spout">
+      <UniqueIdentifier>{4E3E54B5-2CE6-4628-9E80-FA850BF4A908}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Blocks\Spout\include">
+      <UniqueIdentifier>{E345739F-21B6-4B02-8DBB-423183835326}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\ReymentaRenderApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\include\Resources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\ReymentaRenderApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClInclude Include="..\include\Spout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\Button.cpp">
+      <Filter>Blocks\MinimalUI\src</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Button.h">
+      <Filter>Blocks\MinimalUI\include</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\Label.cpp">
+      <Filter>Blocks\MinimalUI\src</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Label.h">
+      <Filter>Blocks\MinimalUI\include</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\Slider.cpp">
+      <Filter>Blocks\MinimalUI\src</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Slider.h">
+      <Filter>Blocks\MinimalUI\include</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\Graph.cpp">
+      <Filter>Blocks\MinimalUI\src</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Graph.h">
+      <Filter>Blocks\MinimalUI\include</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\UIController.cpp">
+      <Filter>Blocks\MinimalUI\src</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\UIController.h">
+      <Filter>Blocks\MinimalUI\include</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\UIElement.cpp">
+      <Filter>Blocks\MinimalUI\src</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\UIElement.h">
+      <Filter>Blocks\MinimalUI\include</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\OSC\src\OscBundle.cpp">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\OscListener.cpp">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\OscMessage.cpp">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\OscSender.cpp">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\ip\IpEndpointName.cpp">
+      <Filter>Blocks\OSC\src\ip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\osc\OscOutboundPacketStream.cpp">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\osc\OscPrintReceivedElements.cpp">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\osc\OscReceivedElements.cpp">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\osc\OscTypes.cpp">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\OSC\src\OscArg.h">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\OscBundle.h">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\OscListener.h">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\OscMessage.h">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\OscSender.h">
+      <Filter>Blocks\OSC\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\ip\IpEndpointName.h">
+      <Filter>Blocks\OSC\src\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\ip\NetworkingUtils.h">
+      <Filter>Blocks\OSC\src\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\ip\PacketListener.h">
+      <Filter>Blocks\OSC\src\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\ip\TimerListener.h">
+      <Filter>Blocks\OSC\src\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\ip\UdpSocket.h">
+      <Filter>Blocks\OSC\src\ip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\MessageMappingOscPacketListener.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscException.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscHostEndianness.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscOutboundPacketStream.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscPacketListener.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscPrintReceivedElements.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscReceivedElements.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscTypes.h">
+      <Filter>Blocks\OSC\src\osc</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\..\blocks\OSC\src\ip\win32\NetworkingUtils.cpp">
+      <Filter>Blocks\OSC\src\ip\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\blocks\OSC\src\ip\win32\UdpSocket.cpp">
+      <Filter>Blocks\OSC\src\ip\win32</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\..\blocks\Spout\include\Spout.h">
+      <Filter>Blocks\Spout\include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\Resources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
