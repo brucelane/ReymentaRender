@@ -1,4 +1,5 @@
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -18,14 +19,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -112,8 +113,15 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Image.h" />
+    <ClInclude Include="..\include\JSONWrapper.h" />
+    <ClInclude Include="..\include\Logger.h" />
+    <ClInclude Include="..\include\OSCWrapper.h" />
+    <ClInclude Include="..\include\ParameterBag.h" />
     <ClInclude Include="..\include\Resources.h" />
-    <ClInclude Include="..\include\Spout.h" />
+    <ClInclude Include="..\include\ReymentaRenderApp.h" />
+    <ClInclude Include="..\include\Shaders.h" />
+    <ClInclude Include="..\include\SlidersPanel.h" />
     <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Button.h" />
     <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Label.h" />
     <ClInclude Include="..\..\..\blocks\Cinder-MinimalUI\include\Slider.h" />
@@ -139,8 +147,16 @@
     <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscReceivedElements.h" />
     <ClInclude Include="..\..\..\blocks\OSC\src\osc\OscTypes.h" />
     <ClInclude Include="..\..\..\blocks\Spout\include\Spout.h" />
+    <ClInclude Include="..\include\Textures.h" />
+    <ClInclude Include="..\include\UI.h" />
+    <ClInclude Include="..\include\WindowMngr.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\Image.cpp" />
+    <ClCompile Include="..\src\JSONWrapper.cpp" />
+    <ClCompile Include="..\src\Logger.cpp" />
+    <ClCompile Include="..\src\OSCWrapper.cpp" />
+    <ClCompile Include="..\src\ParameterBag.cpp" />
     <ClCompile Include="..\src\ReymentaRenderApp.cpp" />
     <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\Button.cpp" />
     <ClCompile Include="..\..\..\blocks\Cinder-MinimalUI\src\Label.cpp" />
@@ -159,6 +175,14 @@
     <ClCompile Include="..\..\..\blocks\OSC\src\osc\OscTypes.cpp" />
     <ClCompile Include="..\..\..\blocks\OSC\src\ip\win32\NetworkingUtils.cpp" />
     <ClCompile Include="..\..\..\blocks\OSC\src\ip\win32\UdpSocket.cpp" />
+    <ClCompile Include="..\src\Shaders.cpp" />
+    <ClCompile Include="..\src\SlidersPanel.cpp" />
+    <ClCompile Include="..\src\Textures.cpp" />
+    <ClCompile Include="..\src\UI.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\resources\passThrough.frag" />
+    <None Include="..\resources\passThrough2.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

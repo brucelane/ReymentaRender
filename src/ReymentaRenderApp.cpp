@@ -1,17 +1,6 @@
 /*
-                
-        Basic Spout sender for Cinder
-
-        Search for "SPOUT" to see what is required
-        Uses the Spout dll
-
-        Based on the RotatingBox CINDER example without much modification
-        Nothing fancy about this, just the basics.
-
-        Search for "SPOUT" to see what is required
-
     ==========================================================================
-    Copyright (C) 2014 Lynn Jarvis.
+    Copyright (C) 2014 Bruce LANE.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -28,118 +17,412 @@
     ==========================================================================
 
 */
+#include "ReymentaRenderApp.h"
 
-#include "cinder/app/AppNative.h"
-#include "cinder/ImageIo.h"
-#include "cinder/gl/Texture.h"
-#include "cinder/Camera.h"
-#include <vector>
+void ReymentaRenderApp::prepareSettings(Settings *settings)
+{
+    // instanciate the logger class
+    log = Logger::create("ReymentaRenderLog.txt");
+    log->logTimedString("prepareSettings");
 
-// spout
-#include "spout.h"
+    // instanciate the json wrapper class
+    mJson = JSONWrapper::create();
 
-using namespace ci;
-using namespace ci::app;
-using namespace std;
-using namespace Spout;
+    // parameters
+    mParameterBag = ParameterBag::create();
 
-
-class ReymentaRenderApp : public AppNative {
-public:
-	void setup();
-	void update();
-	void draw();
-    void shutdown();
-    
-private:
-    // spout
-    bool            bInitialized;       // true if a sender initializes OK
-    bool            bTextureShare;      // tells us if texture share compatible
-    unsigned int    g_Width, g_Height;  // size of the texture being sent out
-    char            SenderName[256];    // sender name 
-    gl::Texture     spoutTexture;       // Local Cinder texture used for sharing
-    // still using the cam vars from the cinder demo
-    CameraPersp mCam;
-    gl::Texture cubeTexture;
-    Matrix44f   mCubeRotation;
-
-};
+    settings->setWindowSize(mParameterBag->mMainWindowWidth, mParameterBag->mMainWindowHeight);
+    //ci::app::setFrameRate(200.0f);
+    settings->setFrameRate(120);
+    //settings->enableMultiTouch();
+    //settings->enableConsoleWindow();
+    //settings->disableFrameRate(); //check : remove framerate limiter
+    settings->setWindowPos(Vec2i(mParameterBag->mMainWindowX, mParameterBag->mMainWindowY));
+    settings->setResizable( true ); // allowed for a receiver
+}
 
 void ReymentaRenderApp::setup()
 {
-    g_Width = 640;
-    g_Height = 360;
+    log->logTimedString("setup");
+        // instanciate the textures class
+    mTextures = Textures::create(mParameterBag);
+    //mJson->parseConfigJson();
+    mJson->parseAssetsJson(mTextures);
 
-    // load an image to texture the demo cube with
-    cubeTexture = loadImage( "../assets/SpoutLogoMarble3.jpg" );
-    
-    mCam.lookAt( Vec3f( 3, 2, -3 ), Vec3f::zero() );
-    mCubeRotation.setToIdentity();
-    glEnable( GL_TEXTURE_2D );
-    gl::enableDepthRead();
-    gl::enableDepthWrite(); 
+    // instanciate the Shaders class, must not be in prepareSettings
+    mShaders = Shaders::create(mParameterBag);
 
-    // Set up the texture we will use to send out
-    // We grab the screen so it has to be the same size
-    spoutTexture = gl::Texture(g_Width, g_Height);
-    strcpy_s(SenderName, "CINDER Spout Sender"); // we have to set a sender name first
-    bInitialized = InitSender(SenderName, g_Width, g_Height, bTextureShare);
-    // bTextureShare informs us whether Spout initialized for texture share or memory share
+    windowManagement();
+    // Setup the user interface
+    mUserInterface = UI::create(mParameterBag, mShaders, mTextures, mMainWindow);
+    mUserInterface->setup();
+    // instanciate the OSC class
+    mOSC = OSC::create(mParameterBag, mShaders);
+    mTimer = 0.0f;
+    //initSpout();
+	unsigned int width, height;
+	char tempname[256];
+
+	// -------- SPOUT -------------
+	// This is a receiver, so the initialization is a little more complex than a sender
+	// Set up the texture we will use to receive from a sender
+	SenderName[0] = NULL; // the name will be filled when the receiver connects to a sender
+	// You can pass a sender name to try to find and connect to 
+	strcpy_s(tempname, 256, "Required sender name");
+	g_Width = 320; 
+	g_Height = 240;
+	width = g_Width; // pass the initial width and height (they will be adjusted if necessary)
+	height = g_Height;
+}
+
+void ReymentaRenderApp::initSpout()
+{
+    unsigned int width, height;
+    char tempname[256];
+
+    // -------- SPOUT -------------
+    // This is a receiver, so the initialization is a little more complex than a sender
+    // Set up the texture we will use to receive from a sender
+    SenderName[0] = NULL; // the name will be filled when the receiver connects to a sender
+    // You can pass a sender name to try to find and connect to 
+    strcpy_s(tempname, 256, "Required sender name"); 
+	width = g_Width; // pass the initial width and height (they will be adjusted if necessary)
+	height = g_Height;
+	bInitialized = InitReceiver(tempname, width, height, bTextureShare);
+    if(bInitialized) {
+        // Check to see whether it has initialized texture share or memoryshare
+        if(bTextureShare) { 
+            // Texture share is OK so we can look at sender names
+            // Check if the name returned is different.
+            if(strcmp(SenderName, tempname) != 0) {
+                // If the sender name is different, the requested 
+                // sender was not found so the active sender was used.
+                // Act on this if necessary.
+                strcpy_s(SenderName, 256, tempname);
+            }
+        }
+        // else the receiver has initialized in memoryshare mode
+
+        // Is the size of the detected sender different from the current texture size ?
+        // This is detected for both texture share and memoryshare
+		if (width != g_Width || height != g_Height) {
+			g_Width = width;
+			g_Height = height;
+			// Reset the local receiving texture size
+			spoutTexture = gl::Texture(g_Width, g_Height);
+			// reset render window
+			setWindowSize(g_Width, g_Height);
+
+        } 
+    }
+    else {
+        // else receiver initialization failure
+        MessageBoxA(NULL, "No sender running\nQuit and try again", "CINDER Spout Receiver", MB_OK); 
+    }
+    // ----------------------------
 }
 
 void ReymentaRenderApp::update()
 {
-    // Rotate the cube by .015 radians around an arbitrary axis
-    mCubeRotation.rotate( Vec3f( 1, 1, 1 ), 0.015f );
-
-    mCam.setPerspective( 60, getWindowAspectRatio(), 1, 1000 );
-    gl::setMatrices( mCam );
-}
-
-void ReymentaRenderApp::draw()
-{
-    gl::clear( Color( 0.39f, 0.025f, 0.0f ) ); // red/brown to be different
-    
-    if( ! cubeTexture )
-        return;
-
-    cubeTexture.bind();
-    glPushMatrix();
-        gl::multModelView( mCubeRotation );
-        gl::drawCube( Vec3f::zero(), Vec3f( 2.5f, 2.5f, 2.5f ) );
-    glPopMatrix();
-    cubeTexture.unbind();
-
-
-    // -------- SPOUT -------------
-    if(bInitialized) {
-
-        // Grab the screen (current read buffer) into the local spout texture
-        spoutTexture.bind();
-        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, g_Width, g_Height);
-        spoutTexture.unbind();
-
-        // Send the texture for all receivers to use
-        SendTexture(spoutTexture.getId(), spoutTexture.getTarget(), g_Width, g_Height, true); // true meaning invert
-
+    if (mParameterBag->mGreyScale)
+    {
+        mParameterBag->iBackgroundColor.g = mParameterBag->iBackgroundColor.b = mParameterBag->iBackgroundColor.r;
+        mParameterBag->iColor.g = mParameterBag->iColor.b = mParameterBag->iColor.r;
     }
+    mParameterBag->iChannelTime[0] = getElapsedSeconds();
+    mParameterBag->iChannelTime[1] = getElapsedSeconds() - 1;
+    mParameterBag->iChannelTime[3] = getElapsedSeconds() - 2;
+    mParameterBag->iChannelTime[4] = getElapsedSeconds() - 3;
+    mParameterBag->iGlobalTime = getElapsedSeconds();
 
-    // Show the user what it is sending
-    char txt[256];
-    sprintf_s(txt, "Sending as [%s]", SenderName);
-    gl::setMatricesWindow( getWindowSize() );
-    gl::enableAlphaBlending();
-    gl::drawString( txt, Vec2f( toPixels( 20 ), toPixels( 20 ) ), Color( 1, 1, 1 ), Font( "Verdana", toPixels( 24 ) ) );
-    sprintf_s(txt, "fps : %2.2d", (int)getAverageFps());
-    gl::drawString( txt, Vec2f(getWindowWidth() - toPixels( 100 ), toPixels( 20 ) ), Color( 1, 1, 1 ), Font( "Verdana", toPixels( 24 ) ) );
-    gl::disableAlphaBlending();
-    // ----------------------------
+    mParameterBag->mFps = getAverageFps();
+    mUserInterface->update();
+    mTextures->update();
+    mOSC->update();
+    // nothing for now mOutput->update();
+    if (mParameterBag->mWindowToCreate > 0)
+    {
+        // try to create the window only once
+        int windowToCreate = mParameterBag->mWindowToCreate;
+        mParameterBag->mWindowToCreate = NONE;
+        switch (windowToCreate)
+        {
+        case RENDER_1:
+            createRenderWindow(1);
+            break;
+        case RENDER_2:
+            createRenderWindow(2);
+            break;
+        case RENDER_3:
+            createRenderWindow(3);
+            break;
+        case RENDER_MORE:
+            addRenderWindow();
+            break;
+        case RENDER_DELETE:
+            deleteRenderWindows();
+            break;
+        }
+    }
+}
+void ReymentaRenderApp::drawMain()
+{
+    gl::clear();
+    gl::setViewport(getWindowBounds());
+    gl::setMatricesWindow(getWindowSize());
+    gl::color(ColorAf(1.0f, 1.0f, 1.0f, 1.0f));
+	
+
+    if (mParameterBag->mPreviewEnabled)
+    {
+        // select drawing mode
+        switch (mParameterBag->mMode)
+        {
+        case MODE_NORMAL:
+            //mPreview->draw(mShaders->getShader(), false);           
+            break;
+        case MODE_CIRCLE:
+            //mPreview->draw(mShaders->getShader(), true);
+            break;
+
+        default:
+            break;
+        }
+    }
+    mUserInterface->draw();
+	// Show the user what it is receiving
+	char txt[256];
+
+	gl::enableAlphaBlending();
+	sprintf_s(txt, "Receiving from [%s]", SenderName);
+	gl::drawString(txt, Vec2f(toPixels(20), getWindowHeight() - toPixels(120)), Color(1, 1, 1), Font("Verdana", toPixels(24)));
+	sprintf_s(txt, "fps : %2.2d", (int)getAverageFps());
+	gl::drawString(txt, Vec2f(getWindowWidth() - toPixels(100), getWindowHeight() - toPixels(80)), Color(1, 1, 1), Font("Verdana", toPixels(24)));
+	gl::drawString("RH click to select a sender", Vec2f(toPixels(20), getWindowHeight() - toPixels(40)), Color(1, 1, 1), Font("Verdana", toPixels(24)));
+	gl::disableAlphaBlending();
+
 
 }
+void ReymentaRenderApp::drawRender()
+{
+	unsigned int width, height;
+
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear();
+	gl::color(Color(1, 1, 1));
+
+	// Save current global width and height - they will be changed
+	// by receivetexture if the sender changes dimensions
+	width = g_Width;
+	height = g_Height;
+
+	// Try to receive the texture at the current size 
+	if (bInitialized) {
+
+		if (!ReceiveTexture(SenderName, spoutTexture.getId(), spoutTexture.getTarget(), width, height)) {
+			//
+			// Receiver failure :
+			//	1)	width and height are zero for read failure.
+			//	2)	width and height are changed for sender change
+			//		The local texture then has to be resized.
+			//
+			if (width == 0 || height == 0) {
+				// width and height are returned zero if there has been 
+				// a texture read failure which might happen if the sender
+				// is closed. Spout will keep trying and if the same sender opens again
+				// will use it. Otherwise the user can select another sender.
+				return;
+			}
+
+			if (width != g_Width || height != g_Height) {
+				// The sender dimensions have changed
+				// Update the global width and height
+				g_Width = width;
+				g_Height = height;
+				// Update the local texture to receive the new dimensions
+				spoutTexture = gl::Texture(g_Width, g_Height);
+				// reset render window
+				setWindowSize(g_Width, g_Height);
+				return; // quit for next round
+			}
+		}
+		else {
+
+			gl::draw(spoutTexture, getWindowBounds());
+
+
+		}
+	}
+	gl::disableAlphaBlending();
+}
+void ReymentaRenderApp::getWindowsResolution()
+{
+    mParameterBag->mDisplayCount = 0;
+    // Display sizes
+    mParameterBag->mMainDisplayWidth = Display::getMainDisplay()->getWidth();
+    //mRenderMaxWidth = 0;
+    mParameterBag->mRenderX = mParameterBag->mMainDisplayWidth;
+    mParameterBag->mRenderY = 0;
+    //mRenderMaxHeight = Display::getMainDisplay()->getHeight();
+    for (auto display : Display::getDisplays())
+    {
+        mParameterBag->mDisplayCount++;
+        mParameterBag->mRenderWidth = display->getWidth();
+        //mRenderMaxWidth += mRenderWidth;
+        mParameterBag->mRenderHeight = display->getHeight();
+        // false: if ( mParameterBag->m16_9 ) mParameterBag->mRenderHeight = mParameterBag->mRenderWidth * 9 / 16;
+        //if ( mRenderHeight > mRenderMaxHeight ) mRenderMaxHeight = mRenderHeight;
+        log->logTimedString("Window " + toString(mParameterBag->mDisplayCount) + ": " + toString(mParameterBag->mRenderWidth) + "x" + toString(mParameterBag->mRenderHeight));
+    }
+    log->logTimedString("mRenderWindowsCount:" + toString(mParameterBag->mRenderWindowsCount) + " mRenderWidth" + toString(mParameterBag->mRenderWidth) + "mRenderHeight" + toString(mParameterBag->mRenderHeight));
+    mParameterBag->mRenderResoXY = Vec2f(mParameterBag->mRenderWidth, mParameterBag->mRenderHeight);
+
+    // in case only one screen , rebder from x = 0
+    if (mParameterBag->mDisplayCount == 1) mParameterBag->mRenderX = 0;
+}
+void ReymentaRenderApp::windowManagement()
+{
+	log->logTimedString("windowManagement");
+	getWindowsResolution();
+	// setup the main window and associated draw function
+	mMainWindow = getWindow();
+	mMainWindow->setTitle("ReymentaRender");
+	mMainWindow->connectDraw(&ReymentaRenderApp::drawMain, this);
+	mMainWindow->connectClose(&ReymentaRenderApp::shutdown, this);
+
+	//mWindowsManager = WindowsManager::create(false, true, "main", mParameterBag->mMainWindowWidth, mParameterBag->mMainWindowHeight, getWindow());//, this );
+}
+void ReymentaRenderApp::updateWindowTitle(string title)
+{
+    getWindow()->setTitle(" Reymenta - " + title);
+}
+
+void ReymentaRenderApp::mouseDown(MouseEvent event)
+{
+    if( event.isRightDown() ) { // Select a sender
+        SelectSenderDialog(); // TODO check if init // The Spout.dll sender selection dialog OK for Cinder
+    }
+	else
+	{
+		ReleaseReceiver();
+		initSpout();
+	}
+}
+
 // -------- SPOUT -------------
 void ReymentaRenderApp::shutdown()
 {
-    ReleaseSender();
+    log->logTimedString("shutdown");
+    deleteRenderWindows();	
+    ReleaseReceiver();// TODO  check if init
+	quit();
 }
+void ReymentaRenderApp::addRenderWindow()
+{
+    log->logTimedString("addRenderWindow,mRenderWindowsCount:" + toString(mParameterBag->mRenderWindowsCount));
+    mParameterBag->mRenderWindowsCount++;
+    createRenderWindows();
+}
+void ReymentaRenderApp::createRenderWindow(int rCount)
+{
+    log->logTimedString("createRenderWindow,mRenderWindowsCount:" + toString(rCount));
+    mParameterBag->mRenderWindowsCount = rCount;
+    createRenderWindows();
+}
+void ReymentaRenderApp::createRenderWindows()
+{
+    log->logTimedString("createRenderWindows,mRenderWindowsCount:" + toString(mParameterBag->mRenderWindowsCount));
+
+    log->logTimedString("BEFORE");
+    log->logTimedString("iResolution:" + toString(mParameterBag->iResolution.x) + "x" + toString(mParameterBag->iResolution.y));
+    // position
+    log->logTimedString("position for each window(-2 to 2 factor):");
+    log->logTimedString("mMiddleRenderXY:" + toString(mParameterBag->mRenderXY.x) + "x" + toString(mParameterBag->mRenderXY.y));
+    // mouse
+    log->logTimedString("iMouse for each window:");
+    log->logTimedString("mMiddleRenderPosXY:" + toString(mParameterBag->mRenderPosXY.x) + "x" + toString(mParameterBag->mRenderPosXY.y));
+    // iResolution
+    log->logTimedString("iResolution for each window:");
+    log->logTimedString("mMiddleRenderResoXY:" + toString(mParameterBag->mRenderResoXY.x) + "x" + toString(mParameterBag->mRenderResoXY.y));
+    // renderwindow
+    log->logTimedString("render window:");
+    log->logTimedString("mRenderResolution:" + toString(mParameterBag->mRenderResolution.x) + "x" + toString(mParameterBag->mRenderResolution.y));
+
+    deleteRenderWindows();
+    getWindowsResolution();
+
+    if (mParameterBag->mCustomRender)
+    {
+        log->logTimedString("CREATEWINDOW CustomRender true");
+        mParameterBag->iResolution.x = mParameterBag->mSizeLeftW * 3 / mParameterBag->mRenderWindowsCount;//TODO other sizes
+        mParameterBag->iResolution.y = mParameterBag->mSizeLeftH;
+        mParameterBag->mRenderResolution = Vec2i(mParameterBag->mSizeLeftW * 3 / mParameterBag->mRenderWindowsCount, mParameterBag->mSizeLeftH);
+    }
+    else
+    {
+        log->logTimedString("CREATEWINDOW CustomRender false");
+        mParameterBag->iResolution.x = mParameterBag->mRenderWidth / mParameterBag->mRenderWindowsCount;
+        mParameterBag->iResolution.y = mParameterBag->mRenderHeight;
+        mParameterBag->mRenderResolution = Vec2i(mParameterBag->mRenderWidth / mParameterBag->mRenderWindowsCount, mParameterBag->mRenderHeight);
+    }
+    log->logTimedString("resolution:" + toString(mParameterBag->iResolution.x) + "x" + toString(mParameterBag->iResolution.y));
+
+    for (int i = 0; i < mParameterBag->mRenderWindowsCount; i++)
+    {
+        string windowName = "render";
+
+        log->logTimedString("mRenderWindowsCount:" + toString(mParameterBag->mRenderWindowsCount) + " mRenderWidth" + toString(mParameterBag->mRenderWidth / mParameterBag->mRenderWindowsCount) + " mRenderHeight" + toString(mParameterBag->mRenderHeight));
+
+        WindowRef   mRenderWindow;
+        mRenderWindow = createWindow(Window::Format().size(mParameterBag->iResolution.x, mParameterBag->iResolution.y));
+
+        // create instance of the window and store in vector
+        WindowMngr rWin = WindowMngr(windowName, mParameterBag->mRenderWidth / mParameterBag->mRenderWindowsCount, mParameterBag->mRenderHeight, mRenderWindow);
+        allRenderWindows.push_back(rWin);
+
+        mRenderWindow->setBorderless();
+        //mRenderWindow->setAlwaysOnTop();
+        mParameterBag->mRenderResoXY = Vec2f(mParameterBag->mRenderWidth / mParameterBag->mRenderWindowsCount, mParameterBag->mRenderHeight);
+
+        if (windowName == "render")
+        {
+            mRenderWindow->connectDraw(&ReymentaRenderApp::drawRender, this);
+            //mRenderWindow->connectKeyDown(  &ReymentaApp::keyDownRender, this );
+            if (i < 2) mParameterBag->mRenderPosXY = Vec2i(mParameterBag->mRenderX + (i * mParameterBag->mRenderWidth / mParameterBag->mRenderWindowsCount), 0);
+        }
+        if (mParameterBag->mCustomRender)
+        {
+            if (i == 0) mRenderWindow->setPos(mParameterBag->mWindowLeftX, mParameterBag->mWindowLeftY);
+            if (i == 1) mRenderWindow->setPos(mParameterBag->mWindowMiddleX, mParameterBag->mWindowMiddleY);
+            if (i == 2) mRenderWindow->setPos(mParameterBag->mWindowRightX, mParameterBag->mWindowRightY);
+        }
+        else
+        {
+            mRenderWindow->setPos(mParameterBag->mRenderX + (i * mParameterBag->mRenderWidth / mParameterBag->mRenderWindowsCount), 0);
+        }
+        //transparentWindow( (HWND)mRenderWindow->getNative() );
+    }
+    log->logTimedString("AFTER");
+    log->logTimedString("iResolution:" + toString(mParameterBag->iResolution.x) + "x" + toString(mParameterBag->iResolution.y));
+    // position
+    log->logTimedString("position for each window(-2 to 2 factor):");
+    log->logTimedString("mMiddleRenderXY:" + toString(mParameterBag->mRenderXY.x) + "x" + toString(mParameterBag->mRenderXY.y));
+    // mouse
+    log->logTimedString("iMouse for each window:");
+    log->logTimedString("mMiddleRenderPosXY:" + toString(mParameterBag->mRenderPosXY.x) + "x" + toString(mParameterBag->mRenderPosXY.y));
+    // iResolution
+    log->logTimedString("iResolution for each window:");
+    log->logTimedString("mMiddleRenderResoXY:" + toString(mParameterBag->mRenderResoXY.x) + "x" + toString(mParameterBag->mRenderResoXY.y));
+    // renderwindow
+    log->logTimedString("render window:");
+    log->logTimedString("mRenderResolution:" + toString(mParameterBag->mRenderResolution.x) + "x" + toString(mParameterBag->mRenderResolution.y));
+
+}
+void ReymentaRenderApp::deleteRenderWindows()
+{
+    for (auto wRef : allRenderWindows) DestroyWindow((HWND)wRef.mWRef->getNative());
+    allRenderWindows.clear();
+}
+
 // This line tells Cinder to actually create the application
 CINDER_APP_NATIVE( ReymentaRenderApp, RendererGl )
