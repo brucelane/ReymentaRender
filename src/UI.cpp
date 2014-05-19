@@ -20,11 +20,7 @@ UI::UI(ParameterBagRef aParameterBag, ShadersRef aShadersRef, TexturesRef aTextu
 	mSetupComplete = false;
 
 	mTimer = 0.0f;
-	// tempo
-	counter = 0;
-	mParameterBag->iDeltaTime = 60 / mParameterBag->mTempo;
-	previousTime = 0.0f;
-	beatIndex = 0;
+
 }
 
 UIRef UI::create(ParameterBagRef aParameterBag, ShadersRef aShadersRef, TexturesRef aTexturesRef, app::WindowRef aWindow)
@@ -53,7 +49,7 @@ void UI::setup()
 
 void UI::setupMiniControl()
 {
-	mMiniControl = UIController::create("{ \"depth\":100, \"width\":936, \"panelColor\":\"0x44282828\", \"height\":150, \"backgroundImage\":\"0.jpg\" }");
+	mMiniControl = UIController::create("{ \"depth\":100, \"width\":936, \"panelColor\":\"0x44282828\", \"height\":150 }");
 	mMiniControl->setFont("label", mParameterBag->mLabelFont);
 	mMiniControl->setFont("smallLabel", mParameterBag->mSmallLabelFont);
 	mMiniControl->setFont("icon", mParameterBag->mIconFont);
@@ -62,13 +58,6 @@ void UI::setupMiniControl()
 	mMiniControl->setFont("footer", mParameterBag->mFooterFont);
 	mPanels.push_back(mMiniControl);
 
-
-	// Textures select/layers
-	// Button Group
-	for (int i = 0; i < mTextures->getTextureCount(); i++)
-	{
-		buttonLayer[i] = mMiniControl->addButton(toString(i), std::bind(&UI::setLayer, this, i, std::placeholders::_1), "{ \"clear\":false, \"width\":48, \"stateless\":false, \"group\":\"layer\", \"exclusive\":true }");
-	}
 	mMiniControl->addButton("Save", std::bind(&UI::saveSettings, this, std::placeholders::_1), "{ \"clear\":false }");
 	mMiniControl->addButton("Load", std::bind(&UI::restoreSettings, this, std::placeholders::_1), "{ \"clear\":false }");
 	mMiniControl->addButton("Reset", std::bind(&UI::resetSettings, this, std::placeholders::_1), "{ \"clear\":false }");
@@ -84,22 +73,6 @@ void UI::setupMiniControl()
 	mMiniControl->addButton("RCV", std::bind(&UI::initReceiver, this, std::placeholders::_1), "{ \"clear\":false }");
 	mMiniControl->addButton("Cust", std::bind(&UI::toggleCustomRender, this, std::placeholders::_1), "{ \"clear\":false, \"stateless\":false, \"pressed\":true }");
 	mMiniControl->addButton("PVW", std::bind(&UI::togglePreviewRender, this, std::placeholders::_1), "{ \"clear\":false, \"stateless\":false, \"pressed\":true }");
-	mMiniControl->addButton("P0", std::bind(&UI::selectPreviewWindow, this, 0, std::placeholders::_1), "{ \"clear\":false, \"stateless\":false, \"group\":\"preview\", \"exclusive\":true }");
-	mMiniControl->addButton("P1", std::bind(&UI::selectPreviewWindow, this, 1, std::placeholders::_1), "{ \"clear\":false, \"stateless\":false, \"group\":\"preview\", \"exclusive\":true }");
-	mMiniControl->addButton("P2", std::bind(&UI::selectPreviewWindow, this, 2, std::placeholders::_1), "{ \"clear\":false, \"stateless\":false, \"group\":\"preview\", \"exclusive\":true }");
-	mMiniControl->addButton("Size", std::bind(&UI::selectPreviewSize, this, std::placeholders::_1), "{ \"stateless\":false, \"pressed\":true }");
-	// Color Sliders
-	mMiniControl->addLabel("Draw color", "{ \"clear\":false }");
-	sliderRed = mMiniControl->addToggleSlider("R", &mParameterBag->iColor.r, "a", std::bind(&UI::lockFR, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xEEFF0000\" }", "{ \"width\":9, \"stateless\":false, \"clear\":false }");
-	sliderGreen = mMiniControl->addToggleSlider("G", &mParameterBag->iColor.g, "a", std::bind(&UI::lockFG, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xEE00FF00\" }", "{ \"width\":9, \"stateless\":false, \"clear\":false }");
-	sliderBlue = mMiniControl->addToggleSlider("B", &mParameterBag->iColor.b, "a", std::bind(&UI::lockFB, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xEE0000FF\" }", "{ \"width\":9, \"stateless\":false, \"clear\":false }");
-	sliderAlpha = mMiniControl->addToggleSlider("A", &mParameterBag->iAlpha, "a", std::bind(&UI::lockFA, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xFFFFFFFF\" }", "{ \"width\":9, \"stateless\":false, \"clear\":false }");
-
-	mMiniControl->addLabel("Back color", "{ \"clear\":false }");
-	sliderBackgroundRed = mMiniControl->addToggleSlider("R", &mParameterBag->iBackgroundColor.r, "a", std::bind(&UI::lockBR, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xEEFF0000\" }", "{ \"width\":9, \"stateless\":false, \"clear\":false }");
-	sliderBackgroundGreen = mMiniControl->addToggleSlider("G", &mParameterBag->iBackgroundColor.g, "a", std::bind(&UI::lockBG, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xEE00FF00\" }", "{ \"width\":9, \"stateless\":false, \"clear\":false }");
-	sliderBackgroundBlue = mMiniControl->addToggleSlider("B", &mParameterBag->iBackgroundColor.b, "a", std::bind(&UI::lockBB, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xEE0000FF\" }", "{ \"width\":9, \"stateless\":false, \"clear\":false }");
-	sliderBackgroundAlpha = mMiniControl->addToggleSlider("A", &mParameterBag->iBackgroundAlpha, "a", std::bind(&UI::lockBA, this, std::placeholders::_1), "{ \"width\":36, \"clear\":false, \"handleVisible\":false, \"vertical\":true, \"nameColor\":\"0xFFFFFFFF\" }", "{ \"width\":9, \"stateless\":false }");
 }
 void UI::setupGlobal()
 {
@@ -128,27 +101,8 @@ void UI::setupGlobal()
 
 	string reso = toString(mParameterBag->mRenderWidth * 3) + ", \"minY\":" + toString(mParameterBag->mRenderHeight) + ", \"maxY\":0.0, \"width\":" + toString(mParameterBag->mPreviewWidth) + " }";
 	sliderResoXY = gParams->addSlider2D("renderResoXY", &mParameterBag->mRenderResoXY, "{ \"minX\":0.0, \"maxX\":" + reso);
-	// x Anims
-	gParams->addToggleSlider("animRenderX", &mParameterBag->mRenderXY.x, "a", std::bind(&UI::lockRenderX, this, std::placeholders::_1), "{ \"clear\":false, \"width\":" + toString(mParameterBag->mPreviewWidth - 13) + ", \"min\":-2.0, \"max\":2.0 }", "{ \"clear\":false, \"width\":9, \"stateless\":false }");
-	gParams->addToggleSlider("animPoxX", &mParameterBag->mRenderPosXY.x, "a", std::bind(&UI::lockPosX, this, std::placeholders::_1), "{ \"clear\":false, \"width\":" + toString(mParameterBag->mPreviewWidth - 13) + ", \"min\":1, \"max\":" + toString(mParameterBag->mRenderWidth * 3) + " }", "{ \"clear\":false, \"width\":9, \"stateless\":false }");
-	gParams->addToggleSlider("animResoX", &mParameterBag->mRenderResoXY.x, "a", std::bind(&UI::lockResoX, this, std::placeholders::_1), "{ \"clear\":false, \"width\":" + toString(mParameterBag->mPreviewWidth - 13) + ", \"min\":1, \"max\":" + toString(mParameterBag->mRenderWidth * 3) + " }", "{ \"clear\":false, \"width\":9, \"stateless\":false }");
-	sliderXSpeed = gParams->addSlider("x speed", &mParameterBag->mXSpeed, "{ \"min\":1.0, \"max\":50.0, \"nameColor\":\"0xFFFFFFFF\", \"width\":" + toString(mParameterBag->mPreviewWidth) + " }");
-	gParams->addToggleSlider("animRenderY", &mParameterBag->mRenderXY.y, "a", std::bind(&UI::lockRenderY, this, std::placeholders::_1), "{ \"clear\":false, \"width\":" + toString(mParameterBag->mPreviewWidth - 13) + ", \"min\":-2.0, \"max\":2.0 }", "{ \"clear\":false, \"width\":9, \"stateless\":false }");
-	gParams->addToggleSlider("animPoxY", &mParameterBag->mRenderPosXY.y, "a", std::bind(&UI::lockPosY, this, std::placeholders::_1), "{ \"clear\":false, \"width\":" + toString(mParameterBag->mPreviewWidth - 13) + ", \"min\":1, \"max\":" + toString(mParameterBag->mRenderHeight) + " }", "{ \"clear\":false, \"width\":9, \"stateless\":false }");
-	gParams->addToggleSlider("animRenderY", &mParameterBag->mRenderResoXY.y, "a", std::bind(&UI::lockResoY, this, std::placeholders::_1), "{ \"clear\":false, \"width\":" + toString(mParameterBag->mPreviewWidth - 13) + ", \"min\":1, \"max\":" + toString(mParameterBag->mRenderHeight) + " }", "{ \"clear\":false, \"width\":9, \"stateless\":false }");
-	sliderYSpeed = gParams->addSlider("y speed", &mParameterBag->mYSpeed, "{ \"min\":1.0, \"max\":50.0, \"nameColor\":\"0xFFFFFFFF\", \"width\":" + toString(mParameterBag->mPreviewWidth) + " }");
 
-	// Simple Button
-	gParams->addButton("fade", std::bind(&UI::toggleFade, this, std::placeholders::_1), "{ \"clear\":false, \"width\":72, \"stateless\":false }");
-	gParams->addButton("toggle", std::bind(&UI::toggleAudioReactive, this, std::placeholders::_1), "{ \"clear\":false, \"width\":72, \"stateless\":false }");
-	gParams->addButton("light", std::bind(&UI::toggleLight, this, std::placeholders::_1), "{ \"clear\":false, \"width\":72, \"stateless\":false }");
-	gParams->addButton("manual light", std::bind(&UI::toggleLightAuto, this, std::placeholders::_1), "{ \"clear\":false, \"width\":72, \"stateless\":false }");
-	buttonBlendmodes = gParams->addButton("use blend", std::bind(&UI::useBlendmodes, this, std::placeholders::_1), "{ \"width\":72, \"stateless\":false }");
-
-	gParams->addButton("send to\noutput", std::bind(&UI::toggleSendToOutput, this, std::placeholders::_1), "{ \"clear\":false, \"width\":72, \"stateless\":false }");
-	gParams->addButton("render\nUI", std::bind(&UI::toggleRenderUI, this, std::placeholders::_1), "{ \"clear\":false, \"width\":72, \"stateless\":false }");
 	gParams->addButton("origin\nupper left", std::bind(&UI::toggleOriginUpperLeft, this, std::placeholders::_1), "{ \"clear\":false, \"width\":72, \"pressed\":true, \"stateless\":false }");
-	//gParams->addButton("tuio", std::bind(&UI::toggleTUIO, this, std::placeholders::_1), "{ \"width\":72, \"pressed\":true, \"stateless\":false }");
 
 	labelInfo = gParams->addLabel("Info", "{ \"width\":430 }");
 	labelError = gParams->addLabel("no error", "{ \"clear\":false, \"width\":430, \"nameColor\":\"0xFFAA0000\" }");
@@ -220,71 +174,7 @@ void UI::update()
 	mParameterBag->iChannel1 = mParameterBag->autoChannel1Speed ? int((sin(getElapsedFrames() / mParameterBag->mChannel1Speed) + 1.0) * 3.9) : mParameterBag->iChannel1;
 	mParameterBag->iChannel2 = mParameterBag->autoChannel2Speed ? int((sin(getElapsedFrames() / mParameterBag->mChannel2Speed) + 1.0) * 3.9) : mParameterBag->iChannel2;
 	mParameterBag->iChannel7 = mParameterBag->autoChannel7Speed ? int((sin(getElapsedFrames() / mParameterBag->mChannel7Speed) + 1.0) * 3.9) : mParameterBag->iChannel7;
-	// exposure
-	currentTime = timer.getSeconds();
-	//mParameterBag->iExposure = sin(getElapsedFrames() / mParameterBag->iExposure) + 1.0;
-	int time = (currentTime - startTime)*1000000.0;
-	int elapsed = mParameterBag->iDeltaTime*1000000.0;
-	if (elapsed > 0)
-	{
-		double modulo = (time % elapsed) / 1000000.0;
-		mParameterBag->iTempoTime = (float)modulo;
-		if (mParameterBag->iTempoTime < previousTime)
-		{
-			beatIndex++;
-			if (beatIndex > 3) beatIndex = 0;
-		}
-		previousTime = mParameterBag->iTempoTime;
-		// exposure
-		if (mSlidersPanel->tExposure)
-		{
-			(modulo < 0.1) ? mParameterBag->iExposure = mSlidersPanel->maxExposure : mParameterBag->iExposure = mSlidersPanel->minExposure;
-		}
-		else
-		{
-			mParameterBag->iExposure = mSlidersPanel->autoExposure ? (sin(getElapsedFrames() / mParameterBag->mSpeed) + 1.0) : mParameterBag->iExposure;
-		}
-		// zoom
-		if (mSlidersPanel->tZoom)
-		{
-			(modulo < 0.1) ? mParameterBag->iZoom = mSlidersPanel->maxZoom : mParameterBag->iZoom = mSlidersPanel->minZoom;
-		}
-		else
-		{
-			mParameterBag->iZoom = mSlidersPanel->autoZoom ? (sin(getElapsedFrames() / mParameterBag->mSpeed) + 1.0) : mParameterBag->iZoom;
-		}
-		// ratio
-		if (mSlidersPanel->tRatio)
-		{
-			(modulo < 0.1) ? mParameterBag->iRatio = mSlidersPanel->maxRatio : mParameterBag->iRatio = mSlidersPanel->minRatio;
-		}
-		else
-		{
-			mParameterBag->iRatio = mSlidersPanel->autoRatio ? (sin(getElapsedFrames() / mParameterBag->mSpeed) + 1.0) : mParameterBag->iRatio;
-		}
-		// use frequencies
-		if (!mParameterBag->mUseAudioFrequencies)
-		{
-			for (int i = 0; i < 4; i++)
-			{
-				(i == beatIndex) ? mParameterBag->iFreqs[i] = 20.0 : mParameterBag->iFreqs[i] = 0.0;
-			}
-		}
-	}
-	// iColor slider
-	sliderRed->setBackgroundColor(ColorA(mParameterBag->iColor.r, 0, 0));
-	sliderGreen->setBackgroundColor(ColorA(0, mParameterBag->iColor.g, 0));
-	sliderBlue->setBackgroundColor(ColorA(0, 0, mParameterBag->iColor.b));
-	sliderAlpha->setBackgroundColor(ColorA(mParameterBag->iColor.r, mParameterBag->iColor.g, mParameterBag->iColor.b, mParameterBag->iAlpha));
-	// iBackColor sliders
-	sliderBackgroundRed->setBackgroundColor(ColorA(mParameterBag->iBackgroundColor.r, 0, 0));
-	sliderBackgroundGreen->setBackgroundColor(ColorA(0, mParameterBag->iBackgroundColor.g, 0));
-	sliderBackgroundBlue->setBackgroundColor(ColorA(0, 0, mParameterBag->iBackgroundColor.b));
-	sliderBackgroundAlpha->setBackgroundColor(ColorA(mParameterBag->iBackgroundColor.r, mParameterBag->iBackgroundColor.g, mParameterBag->iBackgroundColor.b, mParameterBag->iBackgroundAlpha));
 
-	// other sliders
-	sliderXSpeed->setName("x speed " + toString(floor(mParameterBag->mXSpeed)));
-	sliderYSpeed->setName("y speed " + toString(floor(mParameterBag->mYSpeed)));
 	labelXY->setName(toString(int(mParameterBag->mRenderXY.x * 100) / 100) + "x" + toString(int(mParameterBag->mRenderXY.y * 100) / 100));
 	labelPosXY->setName("mouse " + toString(floor(mParameterBag->mRenderPosXY.x)) + "x" + toString(floor(mParameterBag->mRenderPosXY.y)));
 	labelResoXY->setName(toString(floor(mParameterBag->mRenderResoXY.x)) + "x" + toString(floor(mParameterBag->mRenderResoXY.y)));
@@ -303,12 +193,6 @@ void UI::update()
 	labelOSC->setName(mParameterBag->OSCMsg);
 	labelInfo->setName(mParameterBag->InfoMsg);
 	labelError->setName(mShaders->getFragError());
-
-	for (int i = 0; i < mTextures->getTextureCount(); i++)
-	{
-		buttonLayer[i]->setBackgroundTexture(mTextures->getTexture(i));
-	}
-	//gParams->setBackgroundTexture(mTextures->getTexture(((int)mParameterBag->mFps) % 6));
 }
 
 void UI::resize()
@@ -357,39 +241,11 @@ void UI::togglePreviewRender(const bool &pressed)
 	mParameterBag->mPreviewEnabled = pressed;
 }
 
-void UI::toggleFade(const bool &pressed)
-{
-	mParameterBag->iFade = pressed;
-}
-void UI::toggleAudioReactive(const bool &pressed)
-{
-	mParameterBag->iToggle = pressed;
-}
-void UI::toggleLight(const bool &pressed)
-{
-	mParameterBag->iLight = pressed;
-}
-void UI::toggleLightAuto(const bool &pressed)
-{
-	mParameterBag->iLightAuto = pressed;
-}
-// aether
-void UI::toggleSendToOutput(const bool &pressed)
-{
-	mParameterBag->mSendToOutput = pressed;
-}
-void UI::toggleRenderUI(const bool &pressed)
-{
-	mParameterBag->mRenderUI = pressed;
-}
 void UI::toggleOriginUpperLeft(const bool &pressed)
 {
 	mParameterBag->mOriginUpperLeft = pressed;
 }
-void UI::useBlendmodes(const bool &pressed)
-{
-	mParameterBag->mUseBlendmodes = pressed;
-}
+
 
 void UI::setMode(const int &aMode, const bool &pressed)
 {
@@ -420,41 +276,7 @@ void UI::setMode(const int &aMode, const bool &pressed)
 	}
 
 }
-// tempo
-void UI::tapTempo(const bool &pressed)
-{
-	startTime = currentTime = timer.getSeconds();
 
-	timer.stop();
-	timer.start();
-
-	// check for out of time values - less than 50% or more than 150% of from last "TAP and whole time budder is going to be discarded....
-	if (counter > 2 && (buffer.back() * 1.5 < currentTime || buffer.back() * 0.5 > currentTime))
-	{
-		buffer.clear();
-		counter = 0;
-		averageTime = 0;
-		//mParameterBag->OSCMsg = " !!!!  TEMPO CHANGE - START AGAIN !!! " ;
-	}
-	if (counter >= 1)
-	{
-		buffer.push_back(currentTime);
-		calculateTempo();
-	}
-	counter++;
-}
-void UI::calculateTempo()
-{
-	// NORMAL AVERAGE
-	double tAverage = 0;
-	for (int i = 0; i < buffer.size(); i++)
-	{
-		tAverage += buffer[i];
-	}
-	averageTime = (double)(tAverage / buffer.size());
-	mParameterBag->iDeltaTime = averageTime;
-	mParameterBag->mTempo = 60 / averageTime;
-}
 void UI::saveSettings(const bool &pressed)
 {
 	if (mParameterBag->save()) {
